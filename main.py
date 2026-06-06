@@ -76,7 +76,7 @@ def baixar_video(url: str, pasta_saida: str = "downloads") -> str:
 
     # Se for ficheiro local, devolve directamente
     if os.path.exists(url):
-        print(f"✅ Ficheiro local detectado: {url}")
+        print(f" Ficheiro local detectado: {url}")
         return url
 
     opcoes = {
@@ -90,16 +90,16 @@ def baixar_video(url: str, pasta_saida: str = "downloads") -> str:
         "no_warnings": True,
     }
     if not YT_DLP_OK:
-        print("⚠️  yt-dlp não instalado. Execute: pip install yt-dlp")
+        print("  yt-dlp não instalado. Execute: pip install yt-dlp")
         return ""
     try:
         with yt_dlp.YoutubeDL(opcoes) as ydl:
             info = ydl.extract_info(url, download=True)
             ficheiro = ydl.prepare_filename(info).replace(".webm", ".mp4")
-            print(f"✅ Descarregado: {ficheiro}")
+            print(f" Descarregado: {ficheiro}")
             return ficheiro
     except Exception as e:
-        print(f"❌ Erro no download: {e}")
+        print(f" Erro no download: {e}")
         return ""
 
 
@@ -118,9 +118,9 @@ def extrair_audio(caminho_video: str, pasta_temp: str = "temp") -> str:
     ]
     resultado = subprocess.run(cmd, capture_output=True)
     if resultado.returncode == 0:
-        print(f"✅ Áudio extraído: {saida}")
+        print(f" Áudio extraído: {saida}")
         return saida
-    print("❌ Erro ao extrair áudio — verifica se o ffmpeg está instalado")
+    print(" Erro ao extrair áudio — verifica se o ffmpeg está instalado")
     return ""
 
 
@@ -135,20 +135,20 @@ def transcrever_audio(caminho_audio: str, modelo: str = "base") -> list[dict]:
     - Score de áudio: velocidade de fala + bónus por palavras-chave virais
     """
     if not WHISPER_OK:
-        print("⚠️  Whisper não instalado. Execute: pip install openai-whisper")
+        print("  Whisper não instalado. Execute: pip install openai-whisper")
         return []
     if not caminho_audio or not os.path.exists(caminho_audio):
-        print("⚠️  Ficheiro de áudio não encontrado")
+        print("  Ficheiro de áudio não encontrado")
         return []
 
-    print(f"🎙️  A transcrever com Whisper (modelo: {modelo})...")
+    print(f"  A transcrever com Whisper (modelo: {modelo})...")
     try:
         modelo_wh = whisper.load_model(modelo)
         resultado = modelo_wh.transcribe(
             caminho_audio, word_timestamps=True, verbose=False, language=None
         )
     except Exception as e:
-        print(f"❌ Erro na transcrição Whisper: {e}")
+        print(f" Erro na transcrição Whisper: {e}")
         return []
 
     KEYWORDS = {
@@ -176,7 +176,7 @@ def transcrever_audio(caminho_audio: str, modelo: str = "base") -> list[dict]:
             "idioma": idioma
         })
 
-    print(f"✅ {len(segmentos)} segmentos | Idioma: {idioma}")
+    print(f" {len(segmentos)} segmentos | Idioma: {idioma}")
     return segmentos
 
 
@@ -254,14 +254,14 @@ def analisar_frames_com_ia(
     Devolve score (0-100), descrição e razão de relevância.
     """
     if not ANTHROPIC_OK:
-        print("⚠️  anthropic não instalado. Execute: pip install anthropic")
+        print("  anthropic não instalado. Execute: pip install anthropic")
         return {"score_visao": 50.0, "descricao": "Análise indisponível", "razao": ""}
     if not frames:
         return {"score_visao": 0.0, "descricao": "Sem frames", "razao": ""}
 
     chave = api_key or os.environ.get("ANTHROPIC_API_KEY", "")
     if not chave:
-        print("⚠️  ANTHROPIC_API_KEY não definida. A saltar análise de visão.")
+        print("  ANTHROPIC_API_KEY não definida. A saltar análise de visão.")
         return {"score_visao": 50.0, "descricao": "Chave API ausente", "razao": ""}
 
     cliente = anthropic.Anthropic(api_key=chave)
@@ -318,7 +318,7 @@ Responde APENAS em JSON válido, sem texto adicional:
             "adequado_tiktok": dados.get("adequado_tiktok", True)
         }
     except Exception as e:
-        print(f"⚠️  Erro na análise de visão: {e}")
+        print(f"  Erro na análise de visão: {e}")
         return {"score_visao": 50.0, "descricao": "Erro na análise", "razao": str(e)}
 
 
@@ -360,7 +360,7 @@ def analisar_movimento_segmento(
         video.release()
         return round(min(100.0, float(np.mean(diffs)) * 3), 2) if diffs else 0.0
     except Exception as e:
-        print(f"⚠️  Erro na análise de movimento: {e}")
+        print(f"  Erro na análise de movimento: {e}")
         return 50.0
 
 
@@ -378,21 +378,21 @@ def analisar_segmentos_com_ia(
 ) -> list[Segmento]:
     """
     Analisa cada segmento candidato com três camadas de IA:
-      👁️  Claude Vision → relevância visual, emoção, potencial viral
-      🎙️  Whisper       → densidade de fala, keywords virais
-      🏃  OpenCV        → intensidade de movimento entre frames
+        Claude Vision → relevância visual, emoção, potencial viral
+        Whisper       → densidade de fala, keywords virais
+        OpenCV        → intensidade de movimento entre frames
 
     Score final = soma ponderada dos três scores.
     Devolve lista de Segmentos ordenados por score_final (maior primeiro).
     """
     resultados = []
     total = len(segmentos_candidatos)
-    print(f"\n🤖 A analisar {total} segmentos com IA...")
+    print(f"\n A analisar {total} segmentos com IA...")
     print(f"   Pesos → Visão: {peso_visao*100:.0f}% | Áudio: {peso_audio*100:.0f}% | Movimento: {peso_movimento*100:.0f}%\n")
 
     for idx, cand in enumerate(segmentos_candidatos, 1):
         inicio, fim = cand["inicio"], cand["fim"]
-        print(f"📍 [{idx}/{total}] {inicio:.1f}s → {fim:.1f}s", end="  ")
+        print(f" [{idx}/{total}] {inicio:.1f}s → {fim:.1f}s", end="  ")
 
         seg = Segmento(inicio=inicio, fim=fim)
         seg.transcricao = cand.get("texto", "")
@@ -420,7 +420,7 @@ def analisar_segmentos_com_ia(
             seg.score_audio * peso_audio +
             seg.score_movimento * peso_movimento, 2
         )
-        print(f"👁️ {seg.score_visao:.0f}  🎙️ {seg.score_audio:.0f}  🏃 {seg.score_movimento:.0f}  →  ⭐ {seg.score_final:.0f}")
+        print(f" {seg.score_visao:.0f}   {seg.score_audio:.0f}   {seg.score_movimento:.0f}  →   {seg.score_final:.0f}")
         resultados.append(seg)
 
         if api_key and idx < total:
@@ -468,9 +468,9 @@ def cortar_cena(
     ]
     resultado = subprocess.run(cmd, capture_output=True, text=True)
     if resultado.returncode == 0:
-        print(f"✅ Corte guardado: {saida}")
+        print(f" Corte guardado: {saida}")
         return True
-    print(f"❌ Erro ao cortar: {resultado.stderr[-300:]}")
+    print(f" Erro ao cortar: {resultado.stderr[-300:]}")
     return False
 
 
@@ -533,13 +533,13 @@ def processar_video_com_ia(
       5. Relatório      — JSON com scores e metadados de todos os segmentos
     """
     print("\n" + "=" * 55)
-    print("  🤖 CORTADOR DE VÍDEOS COM IA")
+    print("   CORTADOR DE VÍDEOS COM IA")
     print("     Whisper + Visão Claude + OpenCV")
     print("=" * 55)
     tem_api = bool(api_key or os.environ.get("ANTHROPIC_API_KEY"))
-    print(f"\n🎬 Fonte   : {url}")
-    print(f"📐 Formato : {formato}  |  ✂️  Cortes: {num_cortes}")
-    print(f"🎙️  Whisper : {modelo_whisper}  |  👁️  Visão IA: {'✅' if tem_api else '❌ sem chave'}")
+    print(f"\n Fonte   : {url}")
+    print(f" Formato : {formato}  |    Cortes: {num_cortes}")
+    print(f"  Whisper : {modelo_whisper}  |    Visão IA: {'' if tem_api else ' sem chave'}")
 
     pasta_temp = "temp"
     os.makedirs(pasta_temp, exist_ok=True)
@@ -549,7 +549,7 @@ def processar_video_com_ia(
     print("\n── PASSO 1: Download ──────────────────────────────")
     caminho_video = baixar_video(url)
     if not caminho_video or not os.path.exists(caminho_video):
-        print("❌ Falha no download ou ficheiro não encontrado")
+        print(" Falha no download ou ficheiro não encontrado")
         return []
 
     # ── PASSO 2: Transcrição Whisper ────────────────────
@@ -562,7 +562,7 @@ def processar_video_com_ia(
 
     # Fallback: janelas fixas se Whisper não gerar segmentos
     if not candidatos:
-        print("⚠️  Sem segmentos Whisper — a usar janelas fixas como fallback...")
+        print("  Sem segmentos Whisper — a usar janelas fixas como fallback...")
         if CV2_OK:
             cap = cv2.VideoCapture(caminho_video)
             fps_v = cap.get(cv2.CAP_PROP_FPS)
@@ -577,7 +577,7 @@ def processar_video_com_ia(
             for t in range(0, int(duracao_total), int(duracao_min_clip))
         ]
 
-    print(f"📋 {len(candidatos)} segmentos candidatos")
+    print(f" {len(candidatos)} segmentos candidatos")
 
     # ── PASSO 3: Análise com IA ─────────────────────────
     print("\n── PASSO 3: Análise com IA ────────────────────────")
@@ -600,12 +600,12 @@ def processar_video_com_ia(
         saida = os.path.join(
             pasta_saida, f"{nome_base}_clip_{i:02d}_score{seg.score_final:.0f}.mp4"
         )
-        print(f"\n✂️  Clip {i}: {seg.inicio:.1f}s → {seg.fim:.1f}s  (⭐ {seg.score_final:.1f})")
+        print(f"\n  Clip {i}: {seg.inicio:.1f}s → {seg.fim:.1f}s  ( {seg.score_final:.1f})")
         if seg.descricao_visual:
-            print(f"   👁️  {seg.descricao_visual}")
+            print(f"     {seg.descricao_visual}")
         if seg.transcricao:
             trecho = seg.transcricao[:80]
-            print(f"   🎙️  \"{trecho}{'...' if len(seg.transcricao) > 80 else ''}\"")
+            print(f"     \"{trecho}{'...' if len(seg.transcricao) > 80 else ''}\"")
         if cortar_cena(caminho_video, seg.inicio, seg.fim, saida, formato):
             ficheiros.append(saida)
 
@@ -617,7 +617,7 @@ def processar_video_com_ia(
     shutil.rmtree(pasta_temp, ignore_errors=True)
 
     print(f"\n{'='*55}")
-    print(f"🎉 CONCLUÍDO! {len(ficheiros)} clips em '{pasta_saida}/'")
+    print(f" CONCLUÍDO! {len(ficheiros)} clips em '{pasta_saida}/'")
     print(f"{'='*55}\n")
     return ficheiros
 
@@ -683,24 +683,24 @@ def baixar_video_completo(
     Suporta URL (YouTube/TikTok) ou caminho de ficheiro local.
     """
     print("\n" + "=" * 55)
-    print("  📥 DOWNLOAD DE VÍDEO COMPLETO")
+    print("   DOWNLOAD DE VÍDEO COMPLETO")
     print("=" * 55)
 
-    print("\n⬇️  A obter o vídeo...")
+    print("\n  A obter o vídeo...")
     caminho_video = baixar_video(url, pasta_saida="downloads")
     if not caminho_video or not os.path.exists(caminho_video):
-        print("❌ Falha no download ou ficheiro não encontrado")
+        print(" Falha no download ou ficheiro não encontrado")
         return ""
 
     duracao_total = _obter_duracao_video(caminho_video)
     fim_real = fim if fim > 0 else duracao_total
     if inicio >= fim_real:
-        print(f"⚠️  Intervalo inválido ({inicio}s → {fim_real}s). A usar vídeo completo.")
+        print(f"  Intervalo inválido ({inicio}s → {fim_real}s). A usar vídeo completo.")
         inicio, fim_real = 0.0, duracao_total
 
-    print(f"📏 Duração total  : {_formatar_duracao(duracao_total)}")
-    print(f"✂️  Intervalo      : {_formatar_duracao(inicio)} → {_formatar_duracao(fim_real)}")
-    print(f"📐 Formato        : {formato}")
+    print(f" Duração total  : {_formatar_duracao(duracao_total)}")
+    print(f"  Intervalo      : {_formatar_duracao(inicio)} → {_formatar_duracao(fim_real)}")
+    print(f" Formato        : {formato}")
 
     os.makedirs(pasta_saida, exist_ok=True)
     nome_base = Path(caminho_video).stem
@@ -736,16 +736,16 @@ def baixar_video_completo(
         saida, "-loglevel", "error"
     ]
 
-    print(f"\n⚙️  A processar... (pode demorar para vídeos longos)")
+    print(f"\n  A processar... (pode demorar para vídeos longos)")
     resultado = subprocess.run(cmd, capture_output=True, text=True)
 
     if resultado.returncode == 0:
         tamanho_mb = os.path.getsize(saida) / (1024 * 1024)
-        print(f"\n✅ Vídeo guardado : {saida}")
-        print(f"📦 Tamanho        : {tamanho_mb:.1f} MB")
+        print(f"\n Vídeo guardado : {saida}")
+        print(f" Tamanho        : {tamanho_mb:.1f} MB")
         return saida
     else:
-        print(f"❌ Erro ao processar: {resultado.stderr[-300:]}")
+        print(f" Erro ao processar: {resultado.stderr[-300:]}")
         return ""
 
 
@@ -755,42 +755,42 @@ def baixar_video_completo(
 
 def menu():
     print("=" * 55)
-    print("  🤖 CORTADOR DE VÍDEOS COM IA")
+    print("   CORTADOR DE VÍDEOS COM IA")
     print("     Whisper + Visão Claude + OpenCV")
     print("=" * 55)
 
-    print("\n📦 Dependências:")
+    print("\n Dependências:")
     for nome, ok in [("yt-dlp", YT_DLP_OK), ("opencv", CV2_OK),
                      ("whisper", WHISPER_OK), ("anthropic", ANTHROPIC_OK)]:
-        print(f"   {'✅' if ok else '❌'} {nome}")
+        print(f"   {'' if ok else '❌'} {nome}")
 
     print()
-    url = input("🔗 Cola o link do vídeo (ou caminho do ficheiro local): ").strip()
+    url = input(" Cola o link do vídeo (ou caminho do ficheiro local): ").strip()
     if not url:
-        print("❌ URL ou caminho inválido")
+        print(" URL ou caminho inválido")
         return
 
-    print("\n🎬 O que queres fazer?")
-    print("  1. ✂️  Cortes automáticos com IA  (escolhe os melhores momentos)")
-    print("  2. 📥 Vídeo completo              (descarrega o vídeo inteiro ou um intervalo)")
+    print("\n O que queres fazer?")
+    print("  1.   Cortes automáticos com IA  (escolhe os melhores momentos)")
+    print("  2.  Vídeo completo              (descarrega o vídeo inteiro ou um intervalo)")
     modo = input("Escolha (1/2): ").strip()
 
-    print("\n📐 Formato de saída:")
+    print("\n Formato de saída:")
     print("  1. Horizontal — YouTube / MP4 normal  [padrão]")
     print("  2. Vertical   — TikTok / Reels / Shorts")
     formato = "vertical" if input("Escolha (1/2): ").strip() == "2" else "horizontal"
 
     # ── MODO 2: VÍDEO COMPLETO ───────────────────────────
     if modo == "2":
-        print("\n⏱️  Intervalo a capturar (Enter = vídeo completo):")
+        print("\n  Intervalo a capturar (Enter = vídeo completo):")
         print("   (Podes escrever hh:mm:ss, mm:ss ou segundos)")
         inicio = _ler_segundos("   Início [0]: ", 0)
         fim    = _ler_segundos("   Fim    [fim do vídeo]: ", 0)
 
         if inicio == 0 and fim == 0:
-            print("   ✅ Vídeo completo do início ao fim")
+            print("    Vídeo completo do início ao fim")
         else:
-            print(f"   ✅ De {_formatar_duracao(inicio)} até {_formatar_duracao(fim) if fim > 0 else 'fim do vídeo'}")
+            print(f"    De {_formatar_duracao(inicio)} até {_formatar_duracao(fim) if fim > 0 else 'fim do vídeo'}")
 
         baixar_video_completo(
             url=url,
@@ -802,10 +802,10 @@ def menu():
         return
 
     # ── MODO 1: CORTES AUTOMÁTICOS COM IA ───────────────
-    num = input("\n✂️  Quantos clips criar? [5]: ").strip()
+    num = input("\n  Quantos clips criar? [5]: ").strip()
     num_cortes = int(num) if num.isdigit() else 5
 
-    print("\n🎙️  Modelo Whisper:")
+    print("\n  Modelo Whisper:")
     for k, v in [("1", "tiny   — rápido, menos preciso"),
                  ("2", "base   — equilíbrio [padrão]"),
                  ("3", "small  — bom equilíbrio"),
@@ -815,7 +815,7 @@ def menu():
     modelos = {"1": "tiny", "2": "base", "3": "small", "4": "medium", "5": "large"}
     modelo = modelos.get(input("Escolha (1-5): ").strip(), "base")
 
-    print("\n⏱️  Duração de cada clip:")
+    print("\n  Duração de cada clip:")
     print("  1. TikTok curto   — 10s a 30s")
     print("  2. TikTok médio   — 20s a 60s  [padrão]")
     print("  3. Reels / Shorts — 15s a 90s")
@@ -834,17 +834,17 @@ def menu():
 
     if preset in presets:
         duracao_min, duracao_max = presets[preset]
-        print(f"   ✅ {_formatar_duracao(duracao_min)} mínimo  |  {_formatar_duracao(duracao_max)} máximo")
+        print(f"    {_formatar_duracao(duracao_min)} mínimo  |  {_formatar_duracao(duracao_max)} máximo")
     else:
         print("   (Podes escrever hh:mm:ss, mm:ss ou segundos)")
         duracao_min = _ler_segundos("   Duração mínima [10s]: ", 10)
         duracao_max = _ler_segundos("   Duração máxima [60s]: ", 60)
         if duracao_min >= duracao_max:
-            print("   ⚠️  Mínimo >= máximo — a usar valores padrão (10s / 60s)")
+            print("     Mínimo >= máximo — a usar valores padrão (10s / 60s)")
             duracao_min, duracao_max = 10, 60
-        print(f"   ✅ {_formatar_duracao(duracao_min)} mínimo  |  {_formatar_duracao(duracao_max)} máximo")
+        print(f"    {_formatar_duracao(duracao_min)} mínimo  |  {_formatar_duracao(duracao_max)} máximo")
 
-    api_key = input("\n🔑 Chave Anthropic API (Enter = usa ANTHROPIC_API_KEY): ").strip()
+    api_key = input("\n Chave Anthropic API (Enter = usa ANTHROPIC_API_KEY): ").strip()
 
     processar_video_com_ia(
         url=url,
