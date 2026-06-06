@@ -1,0 +1,44 @@
+# Ambientes virtuais
+venv/
+env/
+.env/
+.venv/
+
+# Pastas geradas pelo projecto
+downloads/
+cortes/
+completos/
+temp/
+
+# Variáveis de ambiente
+.env
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Ficheiros de vídeo e áudio
+*.mp4
+*.mp3
+*.wav
+*.webm
+*.mkv
+*.avi
+
+# Modelos Whisper (grandes demais para o Git)
+*.pt
