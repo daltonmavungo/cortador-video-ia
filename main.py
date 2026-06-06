@@ -502,7 +502,7 @@ def gerar_relatorio(segmentos: list[Segmento], pasta_saida: str) -> str:
     os.makedirs(pasta_saida, exist_ok=True)
     with open(caminho, "w", encoding="utf-8") as f:
         json.dump(relatorio, f, ensure_ascii=False, indent=2)
-    print(f"📄 Relatório guardado: {caminho}")
+    print(f" Relatório guardado: {caminho}")
     return caminho
 
 
@@ -762,7 +762,7 @@ def menu():
     print("\n Dependências:")
     for nome, ok in [("yt-dlp", YT_DLP_OK), ("opencv", CV2_OK),
                      ("whisper", WHISPER_OK), ("anthropic", ANTHROPIC_OK)]:
-        print(f"   {'' if ok else '❌'} {nome}")
+        print(f"   {'' if ok else ''} {nome}")
 
     print()
     url = input(" Cola o link do vídeo (ou caminho do ficheiro local): ").strip()
